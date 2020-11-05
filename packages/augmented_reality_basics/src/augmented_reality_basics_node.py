@@ -23,14 +23,21 @@ class AugmentedRealityBascisNode(DTROS):
         self._map_file_name = os.environ.get("DT_MAP_NAME", "hud")
         self._repo_path = os.environ.get("DT_REPO_PATH")
 
-        # load camera intrinsics and extrinsics
+        # load camera intrinsics
         calibration_data = self.read_yaml_file(f"/data/config/calibrations/camera_intrinsic/{self.robot_name}.yaml")
         self.log(calibration_data)
-        self._K, self._D, self._R, self._P = self.extract_camera_data(calibration_data)
+        self._K, self._D, self._R, self._P, self._width, self._height, self._distortion_model = self.extract_camera_data(calibration_data)
         self.log(f"K: {self._K}")
         self.log(f"D: {self._D}")
         self.log(f"R: {self._R}")
         self.log(f"P: {self._P}")
+        self.log(f"width: {self._width}")
+        self.log(f"height: {self._height}")
+
+        # load camera extrinsic matrix
+        extrinsics = self.read_yaml_file(f"/data/config/calibrations/camera_extrinsic/{self.robot_name}.yaml")
+        self._extrinsic = np.array(extrinsics["homography"]).reshape(3, 3)
+        self.log(self._extrinsic)
 
         # load map file
         self._map_data = self.read_yaml_file(f"{self._repo_path}/packages/augmented_reality_basics/maps/{self._map_file_name}.yaml")
@@ -57,9 +64,7 @@ class AugmentedRealityBascisNode(DTROS):
         pass
 
     def render_segments(self, segments, img):
-        for seg in segments:
-
-            self.draw_segment(img, )
+        pass
 
     def draw_segment(self, image, pt_x, pt_y, color):
         defined_colors = {
@@ -93,9 +98,14 @@ class AugmentedRealityBascisNode(DTROS):
 
     @staticmethod
     def extract_camera_data(data):
-        return data['camera_matrix']['data'], data['distortion_coefficients']['data'], \
-               data['rectification_matrix']['data'], data['projection_matrix']['data']
-
+        k = np.array(data['camera_matrix']['data']).reshape(3, 3)
+        d = np.array(data['distortion_coefficients']['data'])
+        r = np.array(data['rectification_matrix']['data']).reshape(3, 3)
+        p = np.array(data['projection_matrix']['data']).reshape(3, 4)
+        width = data['image_width']
+        height = data['image_height']
+        distortion_model = data['distortion_model']
+        return k, d, r, p, width, height, distortion_model
 
 if __name__ == '__main__':
     node = AugmentedRealityBascisNode(node_name='augmented_reality_basics_node')
