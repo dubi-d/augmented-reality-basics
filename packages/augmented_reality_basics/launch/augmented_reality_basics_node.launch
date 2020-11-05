@@ -1,0 +1,8 @@
+<launch>
+	<group ns="$(arg veh)">
+
+	<node pkg="augmented_reality_basics" type="augmented_reality_basics_node.py" name="augmented_reality_basics_node" output="screen"/>
+
+	</group>
+
+</launch>
