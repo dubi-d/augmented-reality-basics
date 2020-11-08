@@ -54,7 +54,7 @@ class AugmentedRealityBascisNode(DTROS):
 
         # load camera extrinsic matrix
         extrinsics = self.read_yaml_file(f"/data/config/calibrations/camera_extrinsic/{self.robot_name}.yaml")
-        self._extrinsic = np.array(extrinsics["homography"])
+        self._extrinsic = np.array(extrinsics["homography"]).reshape(3, 3)
         self.log(f"\nExtrinsic: {self._extrinsic}")
 
         # load map file
@@ -74,7 +74,7 @@ class AugmentedRealityBascisNode(DTROS):
 
         self.log("Letsgoooooooooooooooooo")
 
-    @timeit
+
     def cb_camera_img(self, msg):
         """
         project map features onto image and publish it
@@ -95,7 +95,6 @@ class AugmentedRealityBascisNode(DTROS):
         img_out.format = msg.format
         self.pub_modified_img.publish(img_out)
 
-    @timeit
     def process_image(self, img):
         """
         Rectify image
@@ -114,11 +113,16 @@ class AugmentedRealityBascisNode(DTROS):
         - using a list of points is better that using the dict from yaml file, because of reusability for the next exercise
 
         """
+        self.log("\n\n ------ ground2pixel --------")
         for item in points_dict.values():
-            self.log(np.array([[item[1][0], item[1][1]]]))
-            transformed_point = cv2.perspectiveTransform(np.array([[item[1][0], item[1][1]]]).transpose(), self._extrinsic)
-            self.log(transformed_point)
-            item[1] = [transformed_point[0], transformed_point[1]]
+            point = np.array([[[item[1][0], item[1][1]]]], dtype=np.float32)
+            self.log(point)
+            self.log(f"shape: {point.shape}")
+            transformed_point = cv2.perspectiveTransform(point , self._extrinsic)
+            self.log(f"transformed: {transformed_point}")
+            transformed_point_2 = self._extrinsic * np.array([[item[1][0], item[1][1], 1]], dtype=np.float32).transpose()
+            self.log(f"matrix mult: {transformed_point_2}")
+            item[1] = [int(transformed_point[0][0][0]), int(transformed_point[0][0][1])]
             self.log(item)
         self.log(points_dict)
 
@@ -128,7 +132,6 @@ class AugmentedRealityBascisNode(DTROS):
             item[1][0] *= self._height
             item[1][1] *= self._width
 
-    @timeit
     def render_segments(self, img):
         for seg in self.map_dict['segments']:
             pt_1_string = seg['points'][0]
