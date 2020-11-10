@@ -13,7 +13,7 @@ dt-launchfile-init
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
 # launching app
-dt-exec roslaunch augmented_reality_basics augmented_reality_basics_node.launch veh:=$VEHICLE_NAME
+dt-exec roslaunch augmented_reality_basics augmented_reality_basics.launch veh:=$VEHICLE_NAME
 
 # ----------------------------------------------------------------------------
 # YOUR CODE ABOVE THIS LINE

@@ -20,7 +20,7 @@ class AugmentedRealityBasicsNode(DTROS):
         super(AugmentedRealityBasicsNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
 
         self.robot_name = rospy.get_namespace().strip('/')
-        self._map_file_name = os.environ.get("DT_MAP_NAME", "hud")  # calibration_pattern
+        self._map_file_name = os.environ.get("DT_MAP_NAME", "hud")
         self._repo_path = os.environ.get("DT_REPO_PATH")
 
         # load camera intrinsics
@@ -49,7 +49,6 @@ class AugmentedRealityBasicsNode(DTROS):
 
         # map point coordinates in map_dict to image plane
         self.project_map_points(self.map_dict["points"])
-        self.log(f"\nMap dict modified: {self.map_dict}")
 
         self.log("Letsgoooooooooooooooooo")
 
